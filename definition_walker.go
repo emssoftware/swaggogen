@@ -14,10 +14,10 @@ import (
 	"unicode"
 )
 
-func findDefinition(pkgInfo PackageInfo, typeName string) (*DefinitionIntermediate, error) {
+func findDefinition(referringPackage, typeName string) (*DefinitionIntermediate, error) {
 
+	pkgInfo := pkgInfos[referringPackage]
 	typeName = strings.TrimPrefix(typeName, "*")
-
 	importPaths := possibleImportPaths(pkgInfo, typeName)
 
 	if len(importPaths) == 0 {
@@ -30,7 +30,6 @@ func findDefinition(pkgInfo PackageInfo, typeName string) (*DefinitionIntermedia
 		jlog.Log(importPaths)
 	}
 
-	typeName = strings.TrimPrefix(typeName, "*")
 	if strings.Contains(typeName, ".") {
 		index := strings.Index(typeName, ".") + 1
 		typeName = typeName[index:]
@@ -66,7 +65,16 @@ func findDefinition(pkgInfo PackageInfo, typeName string) (*DefinitionIntermedia
 				definition.PackageName = pkg.Name
 				definition.PackagePath = importPath
 
-				return definitionVisitor.Definition, nil
+				// If this definition is an enum (underlying type is primitive), then we assume it's an enum type that needs enum values.
+				if isPrimitive, _, _ := IsPrimitive(definition.UnderlyingType); isPrimitive {
+					values, err := findEnumValues(definition.PackagePath, definition.Name)
+					if err != nil {
+						return nil, errors.Stack(err)
+					}
+					definition.Enumerations = values
+				}
+
+				return definition, nil
 			}
 		}
 	}
@@ -105,6 +113,11 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				Documentation:  t.Doc.Text(),
 				UnderlyingType: resolveTypeExpression(t.Type),
 				Members:        make(map[string]SchemerDefiner),
+			}
+
+			underlyingType := resolveTypeExpression(t.Type)
+			if underlyingType != "struct" {
+				log.Print("If found something! " + underlyingType)
 			}
 		} else {
 			return nil

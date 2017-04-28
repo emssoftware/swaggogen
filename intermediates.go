@@ -78,9 +78,10 @@ type DefinitionIntermediate struct {
 	EmbeddedTypes  []string
 	Members        map[string]SchemerDefiner // map[name]schemer
 	Name           string
-	PackageName    string // The actual package name of this type.
-	PackagePath    string // The actual package path of this type.
-	UnderlyingType string // This isn't used right now. In our test codebase, non-struct types were never used.
+	PackageName    string   // The actual package name of this type.
+	PackagePath    string   // The actual package path of this type.
+	UnderlyingType string   // This isn't used right now. In our test codebase, non-struct types were never used.
+	Enumerations   []string // If the underlying type is a primitive type, it's assumed it's an enum type, these being the values.
 
 	// While it may not strictly be equivalent from a language specification
 	// perspective, we're going to call a non-struct type with an underlying
@@ -100,15 +101,34 @@ func (this *DefinitionIntermediate) Schema() spec.Schema {
 
 	var schema spec.Schema
 	schema.Title = this.CanonicalName()
-	schema.Typed("object", "")
 
-	properties := make(map[string]spec.Schema)
-	for _, member := range this.Members {
-		property := member.Schema()
-		properties[property.Title] = *property
+	if isPrimitive, t, f := IsPrimitive(this.UnderlyingType); isPrimitive {
+		log.Print(this.CanonicalName())
+		schema.Typed(t, f)
+		schema.Enum = make([]interface{}, 0)
+
+		for _, enum := range this.Enumerations {
+			if strings.HasPrefix(enum, "\"") {
+				schema.Enum = append(schema.Enum, strings.Trim(enum, "\""))
+			} else {
+				f, err := strconv.ParseFloat(enum, 64)
+				if err != nil {
+					log.Print(errors.Stack(err))
+				}
+				schema.Enum = append(schema.Enum, f)
+			}
+		}
+	} else {
+		schema.Typed("object", "")
+
+		properties := make(map[string]spec.Schema)
+		for _, member := range this.Members {
+			property := member.Schema()
+			properties[property.Title] = *property
+		}
+
+		schema.Properties = properties
 	}
-
-	schema.Properties = properties
 
 	return schema
 }
@@ -123,11 +143,9 @@ func (this *DefinitionIntermediate) DefineDefinitions() error {
 	}
 
 	for _, embeddedType := range this.EmbeddedTypes {
-		pkgInfo := pkgInfos[this.PackagePath]
-
-		definition, ok := definitionStore.ExistsDefinition(pkgInfo, embeddedType)
+		definition, ok := definitionStore.ExistsDefinition(this.PackagePath, embeddedType)
 		if !ok {
-			definition, err = findDefinition(pkgInfo, embeddedType)
+			definition, err = findDefinition(this.PackagePath, embeddedType)
 			if err != nil {
 				return errors.Stack(err)
 			} else if definition == nil {
@@ -201,13 +219,12 @@ func (this *MemberIntermediate) Schema() *spec.Schema {
 	return schema
 }
 
-func (this *MemberIntermediate) DefineDefinitions(referencingPackagePath string) error {
+func (this *MemberIntermediate) DefineDefinitions(referringPackage string) error {
 
-	if referencingPackagePath == "" {
+	if referringPackage == "" {
 		return errors.New("Referencing Package Path is empty.")
 	}
 
-	pkgInfo := pkgInfos[referencingPackagePath]
 	var err error
 
 	goType := this.Type
@@ -215,9 +232,9 @@ func (this *MemberIntermediate) DefineDefinitions(referencingPackagePath string)
 		return nil
 	}
 
-	definition, ok := definitionStore.ExistsDefinition(pkgInfo, goType)
+	definition, ok := definitionStore.ExistsDefinition(referringPackage, goType)
 	if !ok {
-		definition, err = findDefinition(pkgInfo, goType)
+		definition, err = findDefinition(referringPackage, goType)
 		if err != nil {
 			return errors.Stack(err)
 		} else if definition == nil {

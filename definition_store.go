@@ -26,8 +26,9 @@ func (this DefinitionStore) Add(intermediate *DefinitionIntermediate) {
 	this[intermediate.CanonicalName()] = intermediate
 }
 
-func (this DefinitionStore) ExistsDefinition(pkgInfo PackageInfo, typeName string) (*DefinitionIntermediate, bool) {
+func (this DefinitionStore) ExistsDefinition(referringPackage, typeName string) (*DefinitionIntermediate, bool) {
 
+	pkgInfo := pkgInfos[referringPackage]
 	importPaths := possibleImportPaths(pkgInfo, typeName)
 
 	idx := strings.Index(typeName, ".")

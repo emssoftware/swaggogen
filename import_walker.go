@@ -7,7 +7,6 @@ import (
 	"go/parser"
 	"go/token"
 	"log"
-	"path/filepath"
 	"strings"
 )
 
@@ -32,13 +31,13 @@ func getPackageInfoRecursive(pkgPath string) (map[string]PackageInfo, error) {
 		pkgName, pkgImportPaths, err := getPackageInfo(currentImportPath)
 		if err != nil {
 			return nil, errors.Stack(err)
-		}else if pkgName == ""{
+		} else if pkgName == "" {
+			allImports[currentImportPath] = true
 			continue
 		}
 
 		// For each import extracted, add it to the master list as necessary.
 		for newImportPath := range pkgImportPaths {
-
 			if _, ok := allImports[newImportPath]; !ok {
 				allImports[newImportPath] = false
 			}
@@ -87,7 +86,7 @@ func getPackageInfo(pkgPath string) (string, map[string][]string, error) {
 
 	bpkg, err := build.Import(pkgPath, srcPath, 0)
 	if err != nil {
-		 log.Print("WARNING: Could not find package: ", pkgPath)
+		logPackageNotFound(pkgPath)
 		return "", nil, nil
 	}
 
@@ -191,4 +190,13 @@ func sContains(set []string, s string) bool {
 	}
 
 	return false
+}
+
+var missingPackages = make(map[string]bool)
+
+func logPackageNotFound(pkgPath string) {
+	if _, ok := missingPackages[pkgPath]; !ok {
+		log.Print("WARNING: Could not find package: ", pkgPath)
+		missingPackages[pkgPath] = false
+	}
 }

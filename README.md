@@ -35,7 +35,7 @@ contain a keyword, which is a marker beginning with an '@'. The format of each
 line depends on the keyword.
 
 These annotations are intended to be compatible with Yuriy Vasiyarov's project,
-found at github.com/yvasiyarov/swagger.
+found at http://github.com/yvasiyarov/swagger.
 
 For the sake of simplicity, a **Route Definition**  combines the necessary
 information to generate Paths and Operations in Swagger terminology. For this
@@ -256,9 +256,12 @@ Example:
 
 This tool was written blind with respect to other similar tools.
 
-While this tool is intended to utilize the same annotations as the yvasiyarov
-project, the original parsing algorithms were not copied (or even used as
-reference). Therefore, exact parsing behavior is not expected to be the same.
+While this tool is intended to utilize the same annotations as the
+[yvasiyarov project](http://github.com/yvasiyarov/swagger), the original parsing
+algorithms were not copied (or even used as reference). Therefore, exact parsing
+behavior is not expected to be the same.
 
-Also, the availability of the `github.com/go-openapi/spec` library is greatly
-appreciated.
+Also, the availability of the
+[OpenAPI specification models](http://github.com/go-openapi/spec) from the
+[OpenAPI Initiative golang toolkit](https://github.com/go-openapi) library is
+greatly appreciated.
