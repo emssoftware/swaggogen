@@ -114,11 +114,6 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				UnderlyingType: resolveTypeExpression(t.Type),
 				Members:        make(map[string]SchemerDefiner),
 			}
-
-			underlyingType := resolveTypeExpression(t.Type)
-			if underlyingType != "struct" {
-				log.Print("If found something! " + underlyingType)
-			}
 		} else {
 			return nil
 		}

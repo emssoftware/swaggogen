@@ -103,7 +103,6 @@ func (this *DefinitionIntermediate) Schema() spec.Schema {
 	schema.Title = this.CanonicalName()
 
 	if isPrimitive, t, f := IsPrimitive(this.UnderlyingType); isPrimitive {
-		log.Print(this.CanonicalName())
 		schema.Typed(t, f)
 		schema.Enum = make([]interface{}, 0)
 
