@@ -114,7 +114,7 @@ func swaggerizeDefinitions() map[string]spec.Schema {
 	schemas := make(map[string]spec.Schema)
 
 	for _, definition := range definitionStore {
-		swaggerName := definition.CanonicalName()
+		swaggerName := definition.SwaggerName()
 		schemas[swaggerName] = definition.Schema()
 	}
 

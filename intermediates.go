@@ -97,10 +97,15 @@ func (this *DefinitionIntermediate) CanonicalName() string {
 	return name
 }
 
+func (this *DefinitionIntermediate) SwaggerName() string {
+	name := this.PackageName + "." + this.Name
+	return name
+}
+
 func (this *DefinitionIntermediate) Schema() spec.Schema {
 
 	var schema spec.Schema
-	schema.Title = this.CanonicalName()
+	schema.Title = this.SwaggerName()
 
 	if isPrimitive, t, f := IsPrimitive(this.UnderlyingType); isPrimitive {
 		schema.Typed(t, f)
@@ -177,7 +182,22 @@ type MemberIntermediate struct {
 }
 
 func (this *MemberIntermediate) DefinitionRef() string {
-	return "#/definitions/" + this.CanonicalName()
+	return "#/definitions/" + this.SwaggerName()
+}
+
+func (this *MemberIntermediate) SwaggerName() string {
+
+	goType := this.Type
+	goType = strings.TrimPrefix(goType, "*")
+
+	idx := strings.Index(goType, ".")
+	if idx > -1 {
+		goType = goType[idx+1:]
+	}
+
+	name := this.PackageName + "." + goType
+
+	return name
 }
 
 func (this *MemberIntermediate) CanonicalName() string {
