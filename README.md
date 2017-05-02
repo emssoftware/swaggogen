@@ -4,7 +4,6 @@ Swaggogen is a tool for extracting Go (golang) type information from an
 application and combining it with code comments to generate a Swagger/OpenAPI
 2.0 specification document.
 
-
 ## Operation
 
 Swaggogen takes one parameter, `pkg`. This parameter should be the package path
@@ -26,6 +25,45 @@ printed to stderr (not stdout), they should not affect the output of any JSON.
 Furthermore, in practical settings, these warnings have never indicated a
 failure to generate a complete Swagger specification document. Please feel free
 to submit a merge request as appropriate.
+
+### Optional Flags
+
+#### `profile` *string*
+
+This is for programmers only.
+
+This flag accepts the path to a file name where profiling details will be
+stored. Profiling details can be reviewed using something like the following
+command:
+
+```
+go tool pprof swaggogen swaggogen.prof
+```
+
+#### `ignore` *string*
+
+This flag accepts a comma-separated list of packages that you want to ignore.
+This is useful if, for example, you import a package that has annotations that 
+shouldn't be in your final spec.
+
+#### `naming` *string*
+
+This flag accepts one of **full**, **partial**, or **simple**.
+
+When using the value of **full**, the whole Go package path is used to generate
+the Swagger model name from the Go type. To remain compatible with the Swagger
+spec, the slashes are replaced by periods.
+
+When using **partial**, the Swagger model names are comprised of the Go package
+name and the Go type name, much in the same way that they would be referenced in
+Go code. 
+
+When using **simple**, the Swagger model name is simply the name of the
+corresponding Go type. No package information is used.
+
+As you may imagine, the likelihood of name collisions increases with each step
+in this spectrum. There are no warnings in the code to protect you from
+collisions.
 
 ## Annotations
 

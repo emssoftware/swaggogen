@@ -34,6 +34,10 @@ func getPackageInfoRecursive(pkgPath string) (map[string]PackageInfo, error) {
 		} else if pkgName == "" {
 			allImports[currentImportPath] = true
 			continue
+		}else 		if shouldIgnore(currentImportPath) {
+			log.Print("Detected ignored package: " + currentImportPath)
+			allImports[currentImportPath] = true
+			continue
 		}
 
 		// For each import extracted, add it to the master list as necessary.
@@ -179,17 +183,6 @@ func (this *ImportVisitor) Visit(node ast.Node) (w ast.Visitor) {
 	}
 
 	return this
-}
-
-func sContains(set []string, s string) bool {
-
-	for _, s_ := range set {
-		if s_ == s {
-			return true
-		}
-	}
-
-	return false
 }
 
 var missingPackages = make(map[string]bool)

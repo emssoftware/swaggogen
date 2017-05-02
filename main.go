@@ -9,12 +9,15 @@ import (
 	"log"
 	"os"
 	"runtime/pprof"
+	"strings"
 )
 
 var (
 	// Command-line parameters
 	pkgPath     *string = flag.String("pkg", "", "The main package of your application.")
 	profilePath *string = flag.String("profile", "", "The path where you'd like to store profiling results.")
+	ignore      *string = flag.String("ignore", "", "The comma seperated package paths that you want to ignore.")
+	naming      *string = flag.String("naming", "full", "One of 'full', 'partial', or 'simple' to describe the amount of the package path on the resulting JSON models.")
 )
 
 var (
@@ -26,6 +29,7 @@ var (
 	definitionStore DefinitionStore        = make(map[string]*DefinitionIntermediate)
 	pkgInfos        map[string]PackageInfo = make(map[string]PackageInfo)
 	srcPath         string
+	ignoredPackages []string = make([]string, 0)
 )
 
 func main() {
@@ -43,6 +47,18 @@ func main() {
 	if *pkgPath == "" {
 		flag.Usage()
 		log.Fatal("Package path is required.")
+	}
+
+	if !(*naming == "full" || *naming == "partial" || *naming == "simple") {
+		flag.Usage()
+		log.Fatal("Unrecognized value provided for naming convention: " + *naming)
+	}
+
+	ignores := strings.Split(*ignore, ",")
+	for _, i := range ignores {
+		if i != "" {
+			ignoredPackages = append(ignoredPackages, i)
+		}
 	}
 
 	var err error

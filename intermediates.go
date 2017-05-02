@@ -98,7 +98,18 @@ func (this *DefinitionIntermediate) CanonicalName() string {
 }
 
 func (this *DefinitionIntermediate) SwaggerName() string {
-	name := this.PackageName + "." + this.Name
+
+	var name string
+
+	switch *naming {
+	case "full":
+		name = this.CanonicalName()
+	case "partial":
+		name = this.PackageName + "." + this.Name
+	case "simple":
+		name = this.Name
+	}
+
 	return name
 }
 
@@ -195,9 +206,19 @@ func (this *MemberIntermediate) SwaggerName() string {
 		goType = goType[idx+1:]
 	}
 
-	name := this.PackageName + "." + goType
+	var name string
+
+	switch *naming {
+	case "full":
+		name = this.CanonicalName()
+	case "partial":
+		name = this.PackageName + "." + goType
+	case "simple":
+		name = goType
+	}
 
 	return name
+
 }
 
 func (this *MemberIntermediate) CanonicalName() string {
