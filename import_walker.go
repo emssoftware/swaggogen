@@ -90,7 +90,7 @@ func getPackageInfo(pkgPath string) (string, map[string][]string, error) {
 
 	bpkg, err := build.Import(pkgPath, srcPath, 0)
 	if err != nil {
-		logPackageNotFound(pkgPath)
+		//logPackageNotFound(pkgPath)
 		return "", nil, nil
 	}
 
