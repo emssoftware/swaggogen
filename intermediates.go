@@ -444,7 +444,7 @@ func intermediatateOperation(commentBlock string) OperationIntermediate {
 	var (
 		// At the time of writing, IntelliJ erroneously warns on unnecessary
 		// escape sequences. Do not trust IntelliJ.
-		rxAccept      *regexp.Regexp = regexp.MustCompile(`@Accept\s+([\w/]+)`)
+		rxAccept      *regexp.Regexp = regexp.MustCompile(`@Accept\s+(.+)`)
 		rxDescription *regexp.Regexp = regexp.MustCompile(`@Description\s+(.+)`)
 		rxParameter   *regexp.Regexp = regexp.MustCompile(`@Param\s+([\w-]+)\s+(\w+)\s+([\w\.]+)\s+(\w+)\s+\"(.+)\"`)
 		rxResponse    *regexp.Regexp = regexp.MustCompile(`@(Success|Failure)\s+(\d+)\s+([{}\w]+)\s([\w\.]+)\s+\"(.+)\"`)
@@ -466,7 +466,24 @@ func intermediatateOperation(commentBlock string) OperationIntermediate {
 		switch {
 
 		case rxAccept.MatchString(line):
-			operationIntermediate.Accepts = append(operationIntermediate.Accepts, rxAccept.FindStringSubmatch(line)[1])
+
+			raw := rxAccept.FindStringSubmatch(line)[1]
+			accepts := strings.Split(raw, ",")
+			for _, accept := range accepts {
+				accept = strings.TrimSpace(accept)
+				accept = strings.ToLower(accept)
+
+				if accept == "" {
+					continue
+				} else if accept == "json" {
+					accept = "application/json"
+				} else if accept == "xml" {
+					accept = "application/xml"
+				}
+
+				operationIntermediate.Accepts = append(operationIntermediate.Accepts, accept)
+			}
+
 		case rxDescription.MatchString(line):
 			operationIntermediate.Description = rxDescription.FindStringSubmatch(line)[1]
 		case rxParameter.MatchString(line):

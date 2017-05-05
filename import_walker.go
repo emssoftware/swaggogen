@@ -34,7 +34,7 @@ func getPackageInfoRecursive(pkgPath string) (map[string]PackageInfo, error) {
 		} else if pkgName == "" {
 			allImports[currentImportPath] = true
 			continue
-		}else 		if shouldIgnore(currentImportPath) {
+		} else if shouldIgnore(currentImportPath) {
 			log.Print("Detected ignored package: " + currentImportPath)
 			allImports[currentImportPath] = true
 			continue
