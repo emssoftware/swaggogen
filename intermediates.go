@@ -190,6 +190,7 @@ type MemberIntermediate struct {
 	Type          string // Go type
 	JsonName      string // JSON name.
 	JsonOmitEmpty bool   // If the omitempty flag was given in the JSON.
+	Description   string
 }
 
 func (this *MemberIntermediate) DefinitionRef() string {
@@ -245,6 +246,7 @@ func (this *MemberIntermediate) Schema() *spec.Schema {
 		name = this.JsonName
 	}
 	schema.Title = name
+	schema.Description = this.Description
 
 	if isPrimitive, t, f := IsPrimitive(this.Type); isPrimitive {
 		schema.Typed(t, f)
@@ -299,12 +301,14 @@ type SliceIntermediate struct {
 	JsonName      string // JSON name.
 	JsonOmitEmpty bool   // If the omitempty flag was given in the JSON.
 	ValueType     *MemberIntermediate
+	Description   string
 }
 
 func (this *SliceIntermediate) Schema() *spec.Schema {
 
 	schema := new(spec.Schema)
 	schema.Title = this.JsonName
+	schema.Description = this.Description
 	schema.Items = new(spec.SchemaOrArray)
 
 	schema.Typed("array", "")
@@ -331,12 +335,14 @@ type MapIntermediate struct {
 	JsonOmitEmpty bool   // If the omitempty flag was given in the JSON.
 	KeyType       *MemberIntermediate
 	ValueType     *MemberIntermediate
+	Description   string
 }
 
 func (this *MapIntermediate) Schema() *spec.Schema {
 
 	schema := new(spec.Schema)
 	schema.Title = this.JsonName
+	schema.Description = this.Description
 	schema.Items = new(spec.SchemaOrArray)
 	schema.Items.Schema = new(spec.Schema)
 

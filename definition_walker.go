@@ -47,7 +47,7 @@ func findDefinition(referringPackage, typeName string) (*DefinitionIntermediate,
 		}
 
 		fset := token.NewFileSet()
-		pkgs, err := parser.ParseDir(fset, bpkg.Dir, nil, parser.AllErrors)
+		pkgs, err := parser.ParseDir(fset, bpkg.Dir, nil, parser.AllErrors|parser.ParseComments)
 		if err != nil {
 			return nil, errors.Stack(err)
 		}
@@ -154,6 +154,11 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 			return nil
 		}
 
+		var desc string = parseMemberDescription(t.Doc.Text())
+		if desc == "" {
+			desc = parseMemberDescription(t.Comment.Text())
+		}
+
 		goType := resolveTypeExpression(t.Type)
 
 		var member SchemerDefiner
@@ -176,6 +181,7 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				JsonOmitEmpty: jsonOmitEmpty,
 				ValueType:     valueType,
 				KeyType:       keyType,
+				Description:   desc,
 			}
 
 		} else if isSlice, v := IsSlice(goType); isSlice {
@@ -190,6 +196,7 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				JsonName:      jsonName,
 				JsonOmitEmpty: jsonOmitEmpty,
 				ValueType:     valueType,
+				Description:   desc,
 			}
 		} else {
 			member = &MemberIntermediate{
@@ -197,6 +204,7 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				Name:          name,
 				JsonName:      jsonName,
 				JsonOmitEmpty: jsonOmitEmpty,
+				Description:   desc,
 			}
 		}
 
@@ -211,8 +219,8 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 		// Ignore import declarations.
 		return nil
 	case nil:
-		//default:
-		//	log.Printf("unexpected type %T\n", t) // %T prints whatever type t has
+	default:
+		//log.Printf("unexpected type %T\n", t) // %T prints whatever type t has
 	}
 
 	return this
@@ -334,4 +342,21 @@ func parseJsonInfo(s string) (string, bool) {
 	omitEmpty := matches[3] == "omitempty"
 
 	return matches[1], omitEmpty
+}
+
+func parseMemberDescription(s string) string {
+
+	if s == "" {
+		return ""
+	}
+
+	rxDesc := regexp.MustCompile(`@(?i:desc)\s+"(.*)"`)
+
+	if !rxDesc.MatchString(s) {
+		return ""
+	}
+
+	matches := rxDesc.FindStringSubmatch(s)
+
+	return matches[1]
 }
