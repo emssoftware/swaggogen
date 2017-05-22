@@ -154,6 +154,8 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 			return nil
 		}
 
+		isRequired := parseValidateTag(t.Tag.Value)
+
 		var desc string = parseMemberDescription(t.Doc.Text())
 		if desc == "" {
 			desc = parseMemberDescription(t.Comment.Text())
@@ -182,6 +184,7 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				ValueType:     valueType,
 				KeyType:       keyType,
 				Description:   desc,
+				Required:      isRequired,
 			}
 
 		} else if isSlice, v := IsSlice(goType); isSlice {
@@ -197,6 +200,7 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				JsonOmitEmpty: jsonOmitEmpty,
 				ValueType:     valueType,
 				Description:   desc,
+				Required:      isRequired,
 			}
 		} else {
 			member = &MemberIntermediate{
@@ -205,6 +209,7 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				JsonName:      jsonName,
 				JsonOmitEmpty: jsonOmitEmpty,
 				Description:   desc,
+				Required:      isRequired,
 			}
 		}
 
@@ -332,16 +337,27 @@ func IsSlice(goType string) (bool, string) {
 }
 
 func parseJsonInfo(s string) (string, bool) {
-	rxJson := regexp.MustCompile(`json:"([\w-$]+)(,([\w]+))?"`)
+	rxJson := regexp.MustCompile(`json:"([^"]+)"`)
 
 	if !rxJson.MatchString(s) {
 		return "", false
 	}
 
 	matches := rxJson.FindStringSubmatch(s)
-	omitEmpty := matches[3] == "omitempty"
+	words := strings.Split(matches[1], ",")
 
-	return matches[1], omitEmpty
+	name := words[0]
+	if len(words) == 1 {
+		return name, false
+	}
+
+	for _, word := range words[1:] {
+		if word == "omitempty" {
+			return name, true
+		}
+	}
+
+	return name, false
 }
 
 func parseMemberDescription(s string) string {
@@ -350,7 +366,7 @@ func parseMemberDescription(s string) string {
 		return ""
 	}
 
-	rxDesc := regexp.MustCompile(`@(?i:desc)\s+"(.*)"`)
+	rxDesc := regexp.MustCompile(`@(?i:desc)\s+"([^"]+)"`)
 
 	if !rxDesc.MatchString(s) {
 		return ""
@@ -359,4 +375,24 @@ func parseMemberDescription(s string) string {
 	matches := rxDesc.FindStringSubmatch(s)
 
 	return matches[1]
+}
+
+func parseValidateTag(s string) (isRequired bool) {
+	rxValidate := regexp.MustCompile(`validate:"([^"]+)"`)
+
+	if !rxValidate.MatchString(s) {
+		return false
+	}
+
+	matches := rxValidate.FindStringSubmatch(s)
+
+	words := strings.Split(matches[1], ",")
+	for _, word := range words {
+		if word == "required" {
+			return true
+		}
+	}
+
+	return false
+
 }

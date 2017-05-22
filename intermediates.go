@@ -16,6 +16,7 @@ type SchemerDefiner interface {
 	// This method should have the side effect of updating package information on the receiver object.
 	DefineDefinitions(referencingPackagePath string) error
 	Schema() *spec.Schema
+	IsRequired() bool
 }
 
 type ApiIntermediate struct {
@@ -135,11 +136,16 @@ func (this *DefinitionIntermediate) Schema() spec.Schema {
 		}
 	} else {
 		schema.Typed("object", "")
+		schema.Required = make([]string, 0)
 
 		properties := make(map[string]spec.Schema)
 		for _, member := range this.Members {
 			property := member.Schema()
 			properties[property.Title] = *property
+
+			if member.IsRequired() {
+				schema.Required = append(schema.Required, property.Title)
+			}
 		}
 
 		schema.Properties = properties
@@ -191,6 +197,11 @@ type MemberIntermediate struct {
 	JsonName      string // JSON name.
 	JsonOmitEmpty bool   // If the omitempty flag was given in the JSON.
 	Description   string
+	Required      bool
+}
+
+func (this *MemberIntermediate) IsRequired() bool {
+	return this.Required
 }
 
 func (this *MemberIntermediate) DefinitionRef() string {
@@ -302,6 +313,11 @@ type SliceIntermediate struct {
 	JsonOmitEmpty bool   // If the omitempty flag was given in the JSON.
 	ValueType     *MemberIntermediate
 	Description   string
+	Required      bool
+}
+
+func (this *SliceIntermediate) IsRequired() bool {
+	return this.Required
 }
 
 func (this *SliceIntermediate) Schema() *spec.Schema {
@@ -336,6 +352,11 @@ type MapIntermediate struct {
 	KeyType       *MemberIntermediate
 	ValueType     *MemberIntermediate
 	Description   string
+	Required      bool
+}
+
+func (this *MapIntermediate) IsRequired() bool {
+	return this.Required
 }
 
 func (this *MapIntermediate) Schema() *spec.Schema {
