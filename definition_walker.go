@@ -149,12 +149,19 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 			return nil
 		}
 
-		jsonName, jsonOmitEmpty := parseJsonInfo(t.Tag.Value)
-		if jsonName == "-" {
-			return nil
-		}
+		var (
+			jsonName      string
+			jsonOmitEmpty bool
+			isRequired    bool
+		)
+		if t.Tag != nil {
+			jsonName, jsonOmitEmpty = parseJsonInfo(t.Tag.Value)
+			if jsonName == "-" {
+				return nil
+			}
 
-		isRequired := parseValidateTag(t.Tag.Value)
+			isRequired = parseValidateTag(t.Tag.Value)
+		}
 
 		var desc string = parseMemberDescription(t.Doc.Text())
 		if desc == "" {
