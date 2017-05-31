@@ -127,11 +127,13 @@ func (this *DefinitionIntermediate) Schema() spec.Schema {
 			if strings.HasPrefix(enum, "\"") {
 				schema.Enum = append(schema.Enum, strings.Trim(enum, "\""))
 			} else {
-				f, err := strconv.ParseFloat(enum, 64)
-				if err != nil {
-					log.Print(errors.Stack(err))
+				// store numerical enums as numbers, otherwise strings.
+				if f, err := strconv.ParseFloat(enum, 64); err == nil {
+					schema.Enum = append(schema.Enum, f)
+				} else {
+					enum = strings.Trim(enum, "\"")
+					schema.Enum = append(schema.Enum, enum)
 				}
-				schema.Enum = append(schema.Enum, f)
 			}
 		}
 	} else {
