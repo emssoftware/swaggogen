@@ -325,7 +325,14 @@ func (this *SliceIntermediate) IsRequired() bool {
 func (this *SliceIntermediate) Schema() *spec.Schema {
 
 	schema := new(spec.Schema)
-	schema.Title = this.JsonName
+
+	name := this.Name
+	if this.JsonName != "" {
+		name = this.JsonName
+	}
+	schema.Title = name
+
+
 	schema.Description = this.Description
 	schema.Items = new(spec.SchemaOrArray)
 
@@ -364,7 +371,13 @@ func (this *MapIntermediate) IsRequired() bool {
 func (this *MapIntermediate) Schema() *spec.Schema {
 
 	schema := new(spec.Schema)
-	schema.Title = this.JsonName
+
+	name := this.Name
+	if this.JsonName != "" {
+		name = this.JsonName
+	}
+	schema.Title = name
+
 	schema.Description = this.Description
 	schema.Items = new(spec.SchemaOrArray)
 	schema.Items.Schema = new(spec.Schema)
