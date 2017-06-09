@@ -62,7 +62,7 @@ type ResponseIntermediate struct {
 	Success     bool
 	StatusCode  int
 	Description string
-	Type        *MemberIntermediate
+	Type        SchemerDefiner
 }
 
 func (this *ResponseIntermediate) Schema() *spec.Schema {
@@ -488,7 +488,7 @@ func intermediatateOperation(commentBlock string) OperationIntermediate {
 		rxAccept      *regexp.Regexp = regexp.MustCompile(`@Accept\s+(.+)`)
 		rxDescription *regexp.Regexp = regexp.MustCompile(`@Description\s+(.+)`)
 		rxParameter   *regexp.Regexp = regexp.MustCompile(`@Param\s+([\w-]+)\s+(\w+)\s+([\w\.]+)\s+(\w+)\s+\"(.+)\"`)
-		rxResponse    *regexp.Regexp = regexp.MustCompile(`@(Success|Failure)\s+(\d+)\s+([{}\w]+)\s+([\w\.]+)\s+\"(.+)\"`)
+		rxResponse    *regexp.Regexp = regexp.MustCompile(`@(Success|Failure)\s+(\d+)\s+\{([\w]+)\}\s+([\w\.]+)\s+\"(.+)\"`)
 		rxRouter      *regexp.Regexp = regexp.MustCompile(`@Router\s+([/\w\d-{}]+)\s+\[(\w+)\]`)
 		rxTitle       *regexp.Regexp = regexp.MustCompile(`@Title\s+(.+)`)
 	)
@@ -550,9 +550,27 @@ func intermediatateOperation(commentBlock string) OperationIntermediate {
 			matches := rxResponse.FindStringSubmatch(line)
 			statusCode, _ := strconv.Atoi(matches[2])
 
-			responseType := &MemberIntermediate{
-				Type: matches[4],
-				//JsonName: matches[3],
+			goType := matches[4]
+			goTypeMeta := matches[3]
+			if strings.ToLower(goTypeMeta) == "array" && !strings.HasPrefix(goType, "[]") {
+				goType = "[]" + goType
+			}
+
+			var responseType SchemerDefiner
+
+			if isSlice, v := IsSlice(goType); isSlice {
+				valueType := &MemberIntermediate{
+					Type: v,
+				}
+
+				responseType = &SliceIntermediate{
+					Type:      goType,
+					ValueType: valueType,
+				}
+			} else {
+				responseType = &MemberIntermediate{
+					Type: goType,
+				}
 			}
 
 			responseIntermediate := &ResponseIntermediate{
