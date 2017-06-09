@@ -332,7 +332,6 @@ func (this *SliceIntermediate) Schema() *spec.Schema {
 	}
 	schema.Title = name
 
-
 	schema.Description = this.Description
 	schema.Items = new(spec.SchemaOrArray)
 
@@ -489,7 +488,7 @@ func intermediatateOperation(commentBlock string) OperationIntermediate {
 		rxAccept      *regexp.Regexp = regexp.MustCompile(`@Accept\s+(.+)`)
 		rxDescription *regexp.Regexp = regexp.MustCompile(`@Description\s+(.+)`)
 		rxParameter   *regexp.Regexp = regexp.MustCompile(`@Param\s+([\w-]+)\s+(\w+)\s+([\w\.]+)\s+(\w+)\s+\"(.+)\"`)
-		rxResponse    *regexp.Regexp = regexp.MustCompile(`@(Success|Failure)\s+(\d+)\s+([{}\w]+)\s([\w\.]+)\s+\"(.+)\"`)
+		rxResponse    *regexp.Regexp = regexp.MustCompile(`@(Success|Failure)\s+(\d+)\s+([{}\w]+)\s+([\w\.]+)\s+\"(.+)\"`)
 		rxRouter      *regexp.Regexp = regexp.MustCompile(`@Router\s+([/\w\d-{}]+)\s+\[(\w+)\]`)
 		rxTitle       *regexp.Regexp = regexp.MustCompile(`@Title\s+(.+)`)
 	)
@@ -547,12 +546,13 @@ func intermediatateOperation(commentBlock string) OperationIntermediate {
 			operationIntermediate.Parameters = append(operationIntermediate.Parameters, parameterIntermediate)
 
 		case rxResponse.MatchString(line):
+
 			matches := rxResponse.FindStringSubmatch(line)
 			statusCode, _ := strconv.Atoi(matches[2])
 
 			responseType := &MemberIntermediate{
-				Type:     matches[4],
-				JsonName: matches[3],
+				Type: matches[4],
+				//JsonName: matches[3],
 			}
 
 			responseIntermediate := &ResponseIntermediate{
@@ -573,7 +573,9 @@ func intermediatateOperation(commentBlock string) OperationIntermediate {
 			operationIntermediate.Title = rxTitle.FindStringSubmatch(line)[1]
 
 		default:
+
 			//log.Print(line)
+
 		}
 	}
 
