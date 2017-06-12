@@ -373,7 +373,7 @@ func parseMemberDescription(s string) string {
 		return ""
 	}
 
-	rxDesc := regexp.MustCompile(`@(?i:desc)\s+"([^"]+)"`)
+	rxDesc := regexp.MustCompile(`@(?i:desc)\s+"?([^"]+)"?`)
 
 	if !rxDesc.MatchString(s) {
 		return ""
