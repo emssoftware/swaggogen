@@ -152,15 +152,18 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 		var (
 			jsonName      string
 			jsonOmitEmpty bool
-			isRequired    bool
+			validations   ValidationMap
 		)
+
 		if t.Tag != nil {
 			jsonName, jsonOmitEmpty = parseJsonInfo(t.Tag.Value)
 			if jsonName == "-" {
 				return nil
 			}
 
-			isRequired = parseValidateTag(t.Tag.Value)
+			validations = parseValidateTag(t.Tag.Value)
+		} else {
+			validations = make(ValidationMap)
 		}
 
 		var desc string = parseMemberDescription(t.Doc.Text())
@@ -174,13 +177,15 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 
 		if isMap, k, v := IsMap(goType); isMap {
 			keyType := &MemberIntermediate{
-				Type: k,
-				Name: name,
+				Type:        k,
+				Name:        name,
+				Validations: validations,
 			}
 
 			valueType := &MemberIntermediate{
-				Type: v,
-				Name: name,
+				Type:        v,
+				Name:        name,
+				Validations: validations,
 			}
 
 			member = &MapIntermediate{
@@ -191,13 +196,14 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				ValueType:     valueType,
 				KeyType:       keyType,
 				Description:   desc,
-				Required:      isRequired,
+				Validations:   validations,
 			}
 
 		} else if isSlice, v := IsSlice(goType); isSlice {
 			valueType := &MemberIntermediate{
-				Type: v,
-				Name: name,
+				Type:        v,
+				Name:        name,
+				Validations: validations,
 			}
 
 			member = &SliceIntermediate{
@@ -207,7 +213,7 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				JsonOmitEmpty: jsonOmitEmpty,
 				ValueType:     valueType,
 				Description:   desc,
-				Required:      isRequired,
+				Validations:   validations,
 			}
 		} else {
 			member = &MemberIntermediate{
@@ -216,7 +222,7 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				JsonName:      jsonName,
 				JsonOmitEmpty: jsonOmitEmpty,
 				Description:   desc,
-				Required:      isRequired,
+				Validations:   validations,
 			}
 		}
 
@@ -384,22 +390,32 @@ func parseMemberDescription(s string) string {
 	return matches[1]
 }
 
-func parseValidateTag(s string) (isRequired bool) {
+func parseValidateTag(s string) map[string]string {
 	rxValidate := regexp.MustCompile(`validate:"([^"]+)"`)
 
+	validations := make(map[string]string)
+
 	if !rxValidate.MatchString(s) {
-		return false
+		return validations
 	}
 
 	matches := rxValidate.FindStringSubmatch(s)
 
-	words := strings.Split(matches[1], ",")
-	for _, word := range words {
-		if word == "required" {
-			return true
+	expressions := strings.Split(matches[1], ",")
+	for _, expression := range expressions {
+
+		parts := strings.Split(expression, "=")
+		k := parts[0]
+		v := ""
+
+		if len(parts) > 1 {
+			v = parts[1]
 		}
+
+		validations[k] = v
+
 	}
 
-	return false
+	return validations
 
 }
