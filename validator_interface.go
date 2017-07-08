@@ -15,6 +15,10 @@ same reason.
 
 For compatibility with the Go JSON spec library (github.com/go-openapi/spec),
 the return types they are what they are.
+
+The site,
+https://spacetelescope.github.io/understanding-json-schema/reference/string.html,
+may have clues to creating more interesting validations (email, urls, etc.).
 */
 type Validator interface {
 
