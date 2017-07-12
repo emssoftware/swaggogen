@@ -119,6 +119,18 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 		}
 	case *ast.Field:
 
+		controlsDoc := parseOpenApiControls(t.Doc.Text())
+		controlsComment := parseOpenApiControls(t.Comment.Text())
+
+		controls := OpenApiControls{
+			Ignore:     controlsDoc.Ignore || controlsComment.Ignore,
+			Deprecated: controlsDoc.Deprecated || controlsComment.Deprecated,
+		}
+
+		if controls.Ignore {
+			return nil
+		}
+
 		if this.Definition == nil {
 			// Ignore fields that don't belong to our definition.
 			return nil
@@ -197,6 +209,7 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				KeyType:       keyType,
 				Description:   desc,
 				Validations:   validations,
+				Deprecated:    controls.Deprecated,
 			}
 
 		} else if isSlice, v := IsSlice(goType); isSlice {
@@ -214,6 +227,7 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				ValueType:     valueType,
 				Description:   desc,
 				Validations:   validations,
+				Deprecated:    controls.Deprecated,
 			}
 		} else {
 			member = &MemberIntermediate{
@@ -223,6 +237,7 @@ func (this *DefinitionVisitor) Visit(node ast.Node) (w ast.Visitor) {
 				JsonOmitEmpty: jsonOmitEmpty,
 				Description:   desc,
 				Validations:   validations,
+				Deprecated:    controls.Deprecated,
 			}
 		}
 
@@ -418,4 +433,27 @@ func parseValidateTag(s string) map[string]string {
 
 	return validations
 
+}
+
+type OpenApiControls struct {
+	Ignore     bool
+	Deprecated bool
+}
+
+func parseOpenApiControls(s string) OpenApiControls {
+
+	var controls OpenApiControls
+
+	rxIgnore := regexp.MustCompile(`@(?i:ignore)`)
+	rxDeprecated := regexp.MustCompile(`@(?i:deprecated)`)
+
+	if rxIgnore.MatchString(s) {
+		controls.Ignore = true
+	}
+
+	if rxDeprecated.MatchString(s) {
+		controls.Deprecated = true
+	}
+
+	return controls
 }

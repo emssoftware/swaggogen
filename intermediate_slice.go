@@ -14,6 +14,7 @@ type SliceIntermediate struct {
 	ValueType     *MemberIntermediate
 	Description   string
 	Validations   Validator
+	Deprecated    bool
 }
 
 func (this *SliceIntermediate) IsRequired() bool {

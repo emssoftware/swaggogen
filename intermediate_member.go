@@ -18,6 +18,7 @@ type MemberIntermediate struct {
 	JsonOmitEmpty bool   // If the omitempty flag was given in the JSON.
 	Description   string
 	Validations   Validator
+	Deprecated    bool
 }
 
 func (this *MemberIntermediate) IsRequired() bool {

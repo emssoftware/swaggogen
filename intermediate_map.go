@@ -15,6 +15,7 @@ type MapIntermediate struct {
 	ValueType     *MemberIntermediate
 	Description   string
 	Validations   Validator
+	Deprecated    bool
 }
 
 func (this *MapIntermediate) IsRequired() bool {
