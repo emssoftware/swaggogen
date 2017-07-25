@@ -43,11 +43,8 @@ func (this *MapIntermediate) Schema() *spec.Schema {
 	// The map is always an object.
 	schema.Typed("object", "")
 
-	// The additional properties is always of type array.
-	schema.AdditionalProperties.Schema.Typed("array", "")
-
-	// The items on the additional properties is the type of the value type.
-	schema.AdditionalProperties.Schema.Items.Schema = this.ValueType.Schema()
+	// The additional properties is the type of the value type.
+	schema.AdditionalProperties.Schema = this.ValueType.Schema()
 
 	// No one with whom I've spoken knows how maps work in Swagger.
 	// Consequently, I'm hoping that the validations work just as well with maps
