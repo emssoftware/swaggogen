@@ -163,7 +163,9 @@ func (this *MemberIntermediate) DefineDefinitions(referringPackage string) error
 		return nil
 	}
 
+	var definition *DefinitionIntermediate
 	definition, ok := definitionStore.ExistsDefinition(referringPackage, goType)
+
 	if !ok {
 		definition, err = findDefinition(referringPackage, goType)
 		if err != nil {
@@ -178,8 +180,10 @@ func (this *MemberIntermediate) DefineDefinitions(referringPackage string) error
 	this.PackagePath = definition.PackagePath
 	this.PackageName = definition.PackageName
 
-	// This triggers the definition of all the members of the discovered type associated with the present member.
-	definition.DefineDefinitions()
+	if !ok {
+		// This triggers the definition of all the members of the discovered type associated with the present member.
+		definition.DefineDefinitions()
+	}
 
 	return nil
 }
