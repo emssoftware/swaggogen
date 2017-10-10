@@ -1,8 +1,8 @@
 package main
 
 import (
-	"strings"
 	"regexp"
+	"strings"
 )
 
 func sContains(set []string, s string) bool {
@@ -98,6 +98,12 @@ func IsMap(goType string) (bool, string, string) {
 }
 
 func IsSlice(goType string) (bool, string) {
+
+	// This is a strange case. The Swagger spec doesn't recognize []byte as an
+	// array, but as a binary string.
+	if goType == "[]byte" {
+		return false, ""
+	}
 
 	if strings.HasPrefix(goType, "[]") {
 		return true, goType[2:]
