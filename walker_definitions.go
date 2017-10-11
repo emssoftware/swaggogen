@@ -71,7 +71,7 @@ func findDefinition(referringPackage, typeName string) (*DefinitionIntermediate,
 					if err != nil {
 						return nil, errors.Stack(err)
 					}
-					definition.Enumerations = values
+					definition.Enums = values
 				}
 
 				return definition, nil

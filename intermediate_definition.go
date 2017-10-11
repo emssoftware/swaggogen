@@ -16,7 +16,7 @@ type DefinitionIntermediate struct {
 	PackageName    string   // The actual package name of this type.
 	PackagePath    string   // The actual package path of this type.
 	UnderlyingType string   // This isn't used right now. In our test codebase, non-struct types were never used.
-	Enumerations   []string // If the underlying type is a primitive type, it's assumed it's an enum type, these being the values.
+	Enums          []string // If the underlying type is a primitive type, it's assumed it's an enum type, these being the values.
 
 	// While it may not strictly be equivalent from a language specification
 	// perspective, we're going to call a non-struct type with an underlying
@@ -57,7 +57,7 @@ func (this *DefinitionIntermediate) Schema() spec.Schema {
 		schema.Typed(t, f)
 		schema.Enum = make([]interface{}, 0)
 
-		for _, enum := range this.Enumerations {
+		for _, enum := range this.Enums {
 			if strings.HasPrefix(enum, "\"") {
 				schema.Enum = append(schema.Enum, strings.Trim(enum, "\""))
 			} else {

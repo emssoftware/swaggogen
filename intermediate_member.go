@@ -159,6 +159,11 @@ func (this *MemberIntermediate) DefineDefinitions(referringPackage string) error
 	var err error
 
 	goType := this.Type
+
+	if goType == "nil"{
+		return nil
+	}
+
 	if isPrimitive, _, _ := IsPrimitive(goType); isPrimitive {
 		return nil
 	}
