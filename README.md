@@ -289,6 +289,28 @@ Example:
 @Title Get Thing
 ```
 
+# Code Structure
+
+This tool operates, at least conceptually, in three phases: parsing, extraction,
+and generation.
+
+During the parsing phase, the code project is scanned for comments blocks.
+
+In the extraction phase, the comment blocks are transformed into intermediate
+representations, called Intermediates. Some of these Intermediates are very
+basic, such as the ApiIntermediate. It is comprised of parsed information and
+nothing else. Other Intermediates, such as the DefinitionIntermediate, require
+further analysis of the code, pulling struct definitions, enums, and so on from
+the code to create Swagger type definitions in the generation stage.
+
+The DefinitionIntermediates are special because they're store in a global
+dictionary, called DefinitionStore, and can be referenced by any of the
+extraction processes. This is primarily to improve performance and make certain
+sections of code simpler.
+
+Finally, in the generation phase, the Intermediates have been fully populated,
+and the swagger object tree is generated. Many Intermediates have a Schema()
+method so that they can generate their own schema by way of interface.
 
 # Creditation
 

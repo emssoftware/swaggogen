@@ -79,7 +79,6 @@ func main() {
 	// Find all pkgComments with keywords.
 	pkgComments := make(map[string][]string, 0)
 	for importPath := range pkgInfos {
-
 		newBlocks, err := getRelevantComments(importPath)
 		if err != nil {
 			log.Fatal(errors.Stack(err))
